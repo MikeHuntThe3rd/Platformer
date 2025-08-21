@@ -38,7 +38,6 @@ void game::FuncDistrib() {
 	DrawAll();
 	Checked_ObjS.clear();
 }
-
 void game::movement() {
 	if (falling) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
@@ -61,16 +60,18 @@ void game::movement() {
 			speed.y = -50.f;
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-			//sped fix
-			speed.x += (speed.x > -19.f) ? -20.f : 0.f;
+			speed.x += (speed.x > -20.f) ? -20.f : 0.f;
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-			speed.x = 20.f;
+			speed.x += (speed.x < 20.f) ? 20.f : 0.f;
 		}
 	}
 	
 }
 void game::Dash() {
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
+		speed.y = -50.f;
+	}
 }
 void game::WallJump(int dir) {
     bool wall_col = (collision(speed.x).collided);
@@ -79,31 +80,41 @@ void game::WallJump(int dir) {
 	}
 }
 void game::Physics() {
-	game::Col_Data Bottom_Col = collision(0.f, speed.y);
-	if (Bottom_Col.collided && Bottom_Col.side.y != -1.f) {
-		player.setPosition({ (float)player.getPosition().x, Bottom_Col.with.position.y - (float)player.getSize().y - 1.f});
+	//Yaxis
+	game::Col_Data Y_Col = game::Col_Data();
+	if (falling) Y_Col = collision(0.f, speed.y);
+	else Y_Col = collision(0.f, 1.f);
+	sf::Vector2f pos = player.getPosition();
+
+	if (Y_Col.collided && Y_Col.side.y == 1.f) {
+		player.setPosition({ (float)player.getPosition().x, Y_Col.with.position.y - (float)player.getSize().y });
 		float AbsDecel = (std::abs(speed.x) > deceleration) ? deceleration * (std::abs(speed.x) / speed.x) : speed.x;
-		speed = { speed.x - AbsDecel, 1.f };
+		speed = { speed.x - AbsDecel, 0.f };
 		falling = false;
+	}
+	else if (Y_Col.collided && Y_Col.side.y == -1.f) {
+		player.setPosition({player.getPosition().x, Y_Col.with.position.y + Y_Col.with.size.y});
+		speed.y = 0.f;
+		falling = true;
 	}
 	else {
 		speed.y += acceleration;
 		falling = true;
 	}
-
-	game::Col_Data inital_col = collision(speed.x);
-	if (inital_col.collided && inital_col.side.y == 0.f) {
-		if (inital_col.with.position.y >= player.getPosition().y + (player.getSize().y / 8.f * 7)) {
+	//Xaxis
+	game::Col_Data X_col = collision(speed.x);
+	if (X_col.collided && speed.x != 0) {
+		if (X_col.with.position.y >= player.getPosition().y + (player.getSize().y / 8.f * 7)) {
 			speed.y = 0.f;
 			player.setPosition({ player.getPosition().x, player.getPosition().y - (float)player.getSize().y / 8.f });
 		}
 		else
 		{
-			if (speed.x / std::abs(speed.x) == -1) {
-				player.setPosition({ inital_col.with.position.x + inital_col.with.size.x, player.getPosition().y });
+			if (X_col.side.x == -1.f) {
+				player.setPosition({ X_col.with.position.x + X_col.with.size.x, player.getPosition().y });
 			}
 			else {
-				player.setPosition({ inital_col.with.position.x - player.getSize().x, player.getPosition().y});
+				player.setPosition({ X_col.with.position.x - player.getSize().x, player.getPosition().y});
 			}
 			speed = { 0.f, 0.f };
 		}
@@ -123,7 +134,10 @@ game::Col_Data game::collision(float XShift, float YShift) {
 			temp.setSize(intersection.value().size);
 			temp.setFillColor(sf::Color::Green);
 			sf::Vector2f dir({0.f, 0.f});
-			if (intersection.value().position.y < player.getPosition().y) dir = {0.f, -1.f};
+			if (intersection.value().position.y > player.getPosition().y + player.getSize().y - intersection.value().size.y) dir.y = 1.f;
+			if (intersection.value().position.y < player.getPosition().y + intersection.value().size.y) dir = { 0.f, -1.f };
+			if (intersection.value().position.x > player.getPosition().x + player.getSize().x - intersection.value().size.x) dir.y = 1.f;;
+			if (intersection.value().position.x < player.getPosition().x + intersection.value().size.x) dir.x = -1.f;;
 			return { true, bounds, dir};
 		}
 	}
@@ -132,19 +146,19 @@ game::Col_Data game::collision(float XShift, float YShift) {
 void game::GetRelevantTiles() {
 	sf::FloatRect player_bounds = player.getGlobalBounds();
 	if (speed.x >= 0.f) {
-		player_bounds.size.x += speed.x * 1.5f;
+		player_bounds.size.x += speed.x + 10.f;
 	}
 	else {
-		player_bounds.position.x += speed.x * 1.5f;
-		player_bounds.size.x += std::abs(speed.x) * 1.5f;
+		player_bounds.position.x += speed.x - 10.f;
+		player_bounds.size.x += std::abs(speed.x) + 10.f;
 	}
 	if (speed.y >= 0.f) {
-		player_bounds.size.y += speed.y * 1.5f;
+		player_bounds.size.y += speed.y + 10.f;
 	}
 	else
 	{
-		player_bounds.position.y += speed.y * 1.5f;
-		player_bounds.size.y += std::abs(speed.y) * 1.5f;
+		player_bounds.position.y += speed.y - 10.f;
+		player_bounds.size.y += std::abs(speed.y) + 10.f;
 	}
 	for (sf::RectangleShape curr : Game_ObjS) {
 		if (player_bounds.findIntersection(curr.getGlobalBounds())) Checked_ObjS.push_back(curr);
