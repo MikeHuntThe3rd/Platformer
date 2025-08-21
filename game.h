@@ -10,6 +10,7 @@ class game
 public:
 	//sfml
 	sf::RectangleShape player;
+	sf::RectangleShape bot1;
 	sf::RectangleShape temp;
 	sf::Vector2f speed = { 0.f, 0.f };
 	sf::RenderWindow& window;

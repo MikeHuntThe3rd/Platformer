@@ -17,6 +17,9 @@ game::game(sf::RenderWindow& win)
 	player.setSize({100.f, 200.f});
 	player.setPosition({500.f, 700.f});
 	player.setFillColor(sf::Color::Blue);
+	bot1.setSize({ 100.f, 200.f });
+	bot1.setPosition({ 500.f, 700.f });
+	bot1.setFillColor(sf::Color::Blue);
 }
 void game::LoadMap(std::string level) {
 	std::ifstream file("levels.json");
