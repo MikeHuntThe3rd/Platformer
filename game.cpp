@@ -72,6 +72,15 @@ void game::Dash() {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
 		speed.y = -50.f;
 	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+		speed.y = 50.f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+		speed.x = -50.f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+		speed.x = 50.f;
+	}
 }
 void game::WallJump(int dir) {
     bool wall_col = (collision(speed.x).collided);
@@ -103,7 +112,7 @@ void game::Physics() {
 	}
 	//Xaxis
 	game::Col_Data X_col = collision(speed.x);
-	if (X_col.collided && speed.x != 0) {
+	if (X_col.collided) {
 		if (X_col.with.position.y >= player.getPosition().y + (player.getSize().y / 8.f * 7)) {
 			speed.y = 0.f;
 			player.setPosition({ player.getPosition().x, player.getPosition().y - (float)player.getSize().y / 8.f });
