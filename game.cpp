@@ -49,22 +49,16 @@ void game::LoadMap(std::string level) {
 	}
 }
 void game::MoveBot(Bot &currBot) {
-	sf::Vector2f currBotLocation = currBot.object.getGlobalBounds().position;
-	if (currBot.direction == 0) { // get a random direction +1 or -1
-		currBot.direction = RandRange(0, 1) == 0 ? -1 : 1;
-		currBot.speed.x = 10.f * currBot.direction; // move the bot that direction
+	if (currBot.direction == 0) { // if there is no initial direction
+		currBot.direction = RandRange(0, 1) == 0 ? -1 : 1; // get a random direction +1 or -1
+		currBot.speed.x = 10.f * currBot.direction; // set the speed
 	}
-	Physics(currBot.object, currBot.speed, currBot.falling);
-	bool tooBigStep = (currBot.object.getGlobalBounds().position.y - currBotLocation.y) > currBot.object.getSize().y / 8.f;
-	bool wallCollision = collision(currBot.object, currBot.speed.x).collided;
-	if (currBot.falling) { // the bot spawned and hit the ground
-		currBot.object.setPosition({ currBotLocation.x, currBotLocation.y });
+	bool XCollision = !collision(currBot.object, currBot.object.getSize().x * currBot.direction + currBot.speed.x, currBot.object.getSize().y / 7.f).collided;
+	if (XCollision) {
 		currBot.direction *= -1;
 	}
-	else if (wallCollision && tooBigStep) {
-		currBot.direction *= -1;
-	}
-	currBot.speed.x = 10.f * currBot.direction; // move the bot that direction
+	currBot.speed.x = 10.f * currBot.direction; // set the speed
+	Physics(currBot.object, currBot.speed, currBot.falling); // move the bot
 }
 void game::FuncDistrib() {
 	// bots

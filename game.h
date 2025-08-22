@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <random>
+#include <iostream>
 class game
 {
 public:
