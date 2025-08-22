@@ -5,7 +5,7 @@
 
 int main() {
 	#pragma region classes
-	sf::RenderWindow window(sf::VideoMode({ 500, 500 }), "Platformer", sf::Style::Default, sf::State::Fullscreen);
+	sf::RenderWindow window(sf::VideoMode({ 1920, 1080 }), "Platformer", sf::Style::Default, sf::State::Fullscreen);
 	titlescreen ti(window);
 	game gm(window);
 	#pragma endregion

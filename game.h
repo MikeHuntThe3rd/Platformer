@@ -10,11 +10,20 @@ class game
 public:
 	//sfml
 	sf::RectangleShape player;
-	sf::RectangleShape bot1;
 	sf::RectangleShape temp;
 	sf::Vector2f speed = { 0.f, 0.f };
 	sf::RenderWindow& window;
 	game(sf::RenderWindow& win);
+
+	// Bots
+	struct Bot
+	{
+		sf::RectangleShape object;
+		sf::Vector2f speed;
+		bool falling;
+	};
+	std::vector<Bot> Bots;
+
 	//variables
 	struct Col_Data
 	{
@@ -30,12 +39,12 @@ public:
 	//functions
 	void LoadMap(std::string level);
 	void FuncDistrib();
-	void Physics();
+	void Physics(sf::RectangleShape& object, sf::Vector2f& speed, bool& falling);
 	void movement();
 	void WallJump(int dir);
 	void Dash();
 	void DrawAll();
-	void GetRelevantTiles();
-	Col_Data collision(float XShift = 0.f, float YShift = 0.f);
+	void GetRelevantTiles(sf::RectangleShape& object, sf::Vector2f speed);
+	Col_Data collision(sf::RectangleShape& object, float XShift = 0.f, float YShift = 0.f);
 	
 };
