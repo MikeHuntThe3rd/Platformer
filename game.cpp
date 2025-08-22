@@ -39,7 +39,7 @@ void game::LoadMap(std::string level) {
 			new_bot.setPosition({ currBot["Location"][0], currBot["Location"][1] });
 			new_bot.setSize({ 100.f, 180.f});
 			new_bot.setFillColor(sf::Color::Green);
-			Bots.push_back({ new_bot, {0.f, 0.f}, false });
+			Bots.push_back({ new_bot});
 		}
 	}
 }
@@ -99,7 +99,7 @@ void game::WallJump(int dir) {
 		speed = { 50.f * dir, -20.f };
 	}
 }
-void game::Physics(sf::RectangleShape& object, sf::Vector2f& speed, bool& falling) {
+void game::Physics(sf::RectangleShape &object, sf::Vector2f &speed, bool &falling) {
 	//Yaxis
 	game::Col_Data Y_Col = game::Col_Data();
 	if (falling) Y_Col = collision(object, 0.f, speed.y);
@@ -142,7 +142,7 @@ void game::Physics(sf::RectangleShape& object, sf::Vector2f& speed, bool& fallin
 	sf::Vector2f PPos = object.getPosition();
 	object.setPosition({PPos.x + speed.x, PPos.y + speed.y});
 }
-game::Col_Data game::collision(sf::RectangleShape& object, float XShift, float YShift) {
+game::Col_Data game::collision(sf::RectangleShape &object, float XShift, float YShift) {
 	for (sf::RectangleShape Curr_Obj: Checked_ObjS) {
 		sf::FloatRect bounds = Curr_Obj.getGlobalBounds();
 		sf::FloatRect object_Hitbox = object.getGlobalBounds();
@@ -163,7 +163,7 @@ game::Col_Data game::collision(sf::RectangleShape& object, float XShift, float Y
 	}
 	return { false, sf::FloatRect(), {0.f, 0.f} };
 }
-void game::GetRelevantTiles(sf::RectangleShape& object, sf::Vector2f speed) {
+void game::GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed) {
 	sf::FloatRect player_bounds = object.getGlobalBounds();
 	if (speed.x >= 0.f) {
 		player_bounds.size.x += speed.x + 10.f;

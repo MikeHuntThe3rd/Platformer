@@ -19,8 +19,8 @@ public:
 	struct Bot
 	{
 		sf::RectangleShape object;
-		sf::Vector2f speed;
-		bool falling;
+		sf::Vector2f speed = {0.f, 0.f};
+		bool falling = false;
 	};
 	std::vector<Bot> Bots;
 
