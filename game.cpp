@@ -42,28 +42,40 @@ void game::LoadMap(std::string level) {
 		for (json currBot : currWave) {
 			sf::RectangleShape new_bot;
 			new_bot.setPosition({ currBot["Location"][0], currBot["Location"][1] });
-			new_bot.setSize({ 100.f, 180.f});
+			new_bot.setSize({ 100.f, 200.f});
 			new_bot.setFillColor(sf::Color::Green);
 			Bots.push_back({ new_bot});
 		}
 	}
 }
+void game::MoveBot(Bot &currBot) {
+	sf::Vector2f currBotLocation = currBot.object.getGlobalBounds().position;
+	if (currBot.direction == 0) { // get a random direction +1 or -1
+		currBot.direction = RandRange(0, 1) == 0 ? -1 : 1;
+		currBot.speed.x = 10.f * currBot.direction; // move the bot that direction
+	}
+	Physics(currBot.object, currBot.speed, currBot.falling);
+	bool tooBigStep = (currBot.object.getGlobalBounds().position.y - currBotLocation.y) > currBot.object.getSize().y / 8.f;
+	bool wallCollision = collision(currBot.object, currBot.speed.x).collided;
+	if (currBot.falling) { // the bot spawned and hit the ground
+		currBot.object.setPosition({ currBotLocation.x, currBotLocation.y });
+		currBot.direction *= -1;
+	}
+	else if (wallCollision && tooBigStep) {
+		currBot.direction *= -1;
+	}
+	currBot.speed.x = 10.f * currBot.direction; // move the bot that direction
+}
 void game::FuncDistrib() {
 	// bots
-	sf::Vector2f currBotLocation;
 	for (Bot &currBot : Bots) {
 		GetRelevantTiles(currBot.object, currBot.speed);
-		Physics(currBot.object, currBot.speed, currBot.falling);
-		if (!currBot.falling) { // the bot spawned and hit the ground
-			currBot.direction = RandRange(0, 1) == 0 ? -1 : 1; // get a random direction +1 or -1
-			currBotLocation = currBot.object.getGlobalBounds().position;
-			currBot.speed.x = 5.f; // move the bot that direction
+		if (!currBot.falling) {
+			MoveBot(currBot);
+		}
+		else
+		{
 			Physics(currBot.object, currBot.speed, currBot.falling);
-			// if the bots falling property is true than move it the opposite direction
-			if ((currBot.object.getGlobalBounds().position.y - currBotLocation.y) > currBot.object.getSize().y / 8.f) {
-				currBot.direction *= -1;
-				currBot.speed.x = 5.f * currBot.direction; // move the bot that direction
-			}
 		}
 	}
 

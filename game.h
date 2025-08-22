@@ -39,15 +39,16 @@ public:
 	float deceleration = 3.f;
 	bool falling = false;
 	//functions
+	int RandRange(int start, int end);
 	void LoadMap(std::string level);
+	void MoveBot(Bot &currBot);
 	void FuncDistrib();
-	void Physics(sf::RectangleShape& object, sf::Vector2f& speed, bool& falling);
+	void Physics(sf::RectangleShape &object, sf::Vector2f &speed, bool &falling);
 	void movement();
 	void WallJump(int dir);
 	void Dash();
 	void DrawAll();
-	void GetRelevantTiles(sf::RectangleShape& object, sf::Vector2f speed);
-	int RandRange(int start, int end);
-	Col_Data collision(sf::RectangleShape& object, float XShift = 0.f, float YShift = 0.f);
-	
+	void GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed);
+	Col_Data collision(sf::RectangleShape &object, float XShift = 0.f, float YShift = 0.f);
+
 };
