@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <random>
 class game
 {
 public:
@@ -20,6 +21,7 @@ public:
 	{
 		sf::RectangleShape object;
 		sf::Vector2f speed = {0.f, 0.f};
+		int direction = 0; // positive right, negative left
 		bool falling = false;
 	};
 	std::vector<Bot> Bots;
@@ -45,6 +47,7 @@ public:
 	void Dash();
 	void DrawAll();
 	void GetRelevantTiles(sf::RectangleShape& object, sf::Vector2f speed);
+	int RandRange(int start, int end);
 	Col_Data collision(sf::RectangleShape& object, float XShift = 0.f, float YShift = 0.f);
 	
 };

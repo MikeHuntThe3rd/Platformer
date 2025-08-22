@@ -21,6 +21,11 @@ game::game(sf::RenderWindow& win)
 	player.setFillColor(sf::Color::Blue);
 
 }
+int game::RandRange(int start, int end) {
+	static std::mt19937 gen(std::random_device{}());
+	std::uniform_int_distribution<> distrib(start, end);
+	return distrib(gen);
+}
 void game::LoadMap(std::string level) {
 	std::ifstream file("levels.json");
 	json objs;
@@ -45,9 +50,21 @@ void game::LoadMap(std::string level) {
 }
 void game::FuncDistrib() {
 	// bots
-	for (Bot currBot : Bots) {
+	sf::Vector2f currBotLocation;
+	for (Bot &currBot : Bots) {
 		GetRelevantTiles(currBot.object, currBot.speed);
 		Physics(currBot.object, currBot.speed, currBot.falling);
+		if (!currBot.falling) { // the bot spawned and hit the ground
+			currBot.direction = RandRange(0, 1) == 0 ? -1 : 1; // get a random direction +1 or -1
+			currBotLocation = currBot.object.getGlobalBounds().position;
+			currBot.speed.x = 5.f; // move the bot that direction
+			Physics(currBot.object, currBot.speed, currBot.falling);
+			// if the bots falling property is true than move it the opposite direction
+			if ((currBot.object.getGlobalBounds().position.y - currBotLocation.y) > currBot.object.getSize().y / 8.f) {
+				currBot.direction *= -1;
+				currBot.speed.x = 5.f * currBot.direction; // move the bot that direction
+			}
+		}
 	}
 
 	// player
@@ -164,6 +181,9 @@ game::Col_Data game::collision(sf::RectangleShape &object, float XShift, float Y
 	return { false, sf::FloatRect(), {0.f, 0.f} };
 }
 void game::GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed) {
+	if (Checked_ObjS.size() != 0) {
+		Checked_ObjS = std::vector<sf::RectangleShape>();
+	}
 	sf::FloatRect player_bounds = object.getGlobalBounds();
 	if (speed.x >= 0.f) {
 		player_bounds.size.x += speed.x + 10.f;
