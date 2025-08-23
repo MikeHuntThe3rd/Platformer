@@ -115,6 +115,15 @@ void game::Dash() {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
 		speed.y = -50.f;
 	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+		speed.y = 50.f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+		speed.x = -50.f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+		speed.x = 50.f;
+	}
 }
 void game::WallJump(int dir) {
     bool wall_col = (collision(player, speed.x).collided);
