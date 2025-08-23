@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <random>
 class game
 {
 public:
@@ -14,6 +15,17 @@ public:
 	sf::Vector2f speed = { 0.f, 0.f };
 	sf::RenderWindow& window;
 	game(sf::RenderWindow& win);
+
+	// Bots
+	struct Bot
+	{
+		sf::RectangleShape object;
+		sf::Vector2f speed = {0.f, 0.f};
+		int direction = 0; // positive right, negative left
+		bool falling = false;
+	};
+	std::vector<Bot> Bots;
+
 	//variables
 	struct Col_Data
 	{
@@ -27,14 +39,16 @@ public:
 	float deceleration = 3.f;
 	bool falling = false;
 	//functions
+	int RandRange(int start, int end);
 	void LoadMap(std::string level);
+	void MoveBot(Bot &currBot);
 	void FuncDistrib();
-	void Physics();
+	void Physics(sf::RectangleShape &object, sf::Vector2f &speed, bool &falling);
 	void movement();
 	void WallJump(int dir);
 	void Dash();
 	void DrawAll();
-	void GetRelevantTiles();
-	Col_Data collision(float XShift = 0.f, float YShift = 0.f);
-	
+	void GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed);
+	Col_Data collision(sf::RectangleShape &object, float XShift = 0.f, float YShift = 0.f);
+
 };
