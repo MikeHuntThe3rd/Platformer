@@ -9,8 +9,7 @@ game::game(sf::RenderWindow& win)
 									  { {"Size", {100.f, (float)window.getSize().y}}, { "Location", { 0.f, 0.f } } },
 									  { {"Size", {100.0, 100.0}}, { "Location", { 960.0, 960.0 } } }
 		};
-		myData["lvl1"]["waves"] = { {{"Location", {500.0, 500.0}}}
-		};
+		myData["lvl1"]["waves"] = { {{"Location", {500.0, 500.0}}} };
 		std::ofstream outFile("levels.json");
 		outFile << myData.dump(4);
 		outFile.close();
@@ -20,6 +19,16 @@ game::game(sf::RenderWindow& win)
 	player.setPosition({500.f, 700.f});
 	player.setFillColor(sf::Color::Blue);
 
+}
+bool game::IntervalPassed(std::string id) {
+	using mili = std::chrono::milliseconds;
+	for (game::CoolDown &Tpoint: CoolDowns) {
+		if (Tpoint.id == id && Timer >= Tpoint.LastTrigger + mili(Tpoint.interval)) {
+			Tpoint.LastTrigger = std::chrono::steady_clock::now();
+			return true;
+		}
+	}
+	return false;
 }
 int game::RandRange(int start, int end) {
 	static std::mt19937 gen(std::random_device{}());
@@ -62,7 +71,9 @@ void game::MoveBot(Bot &currBot) {
 	if (currBot.speed.x == 0.f) currBot.direction *= -1;
 }
 void game::FuncDistrib() {
-	// bots
+	//time
+	Timer = std::chrono::steady_clock::now();
+	//bots
 	for (Bot &currBot : Bots) {
 		GetRelevantTiles(currBot.object, currBot.speed);
 		if (!currBot.falling) {
@@ -93,7 +104,7 @@ void game::movement() {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
 			speed.y += acceleration;
 		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift)) {
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) && IntervalPassed("dash")) {
 			Dash();
 		}
 	}

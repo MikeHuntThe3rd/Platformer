@@ -1,7 +1,6 @@
 #include "SFML/Graphics.hpp"
-#include <chrono>
-#include "titlescreen.h"
 #include "game.h"
+#include "titlescreen.h"
 
 int main() {
 	#pragma region classes
