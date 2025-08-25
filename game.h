@@ -24,7 +24,7 @@ public:
 		sf::RectangleShape object;
 		sf::Vector2f speed = { 0.f, 0.f };
 		int direction = 0; // positive right, negative left
-		bool falling = false;
+		bool falling = true;
 	};
 	struct Col_Data
 	{
@@ -65,5 +65,7 @@ public:
 	void Dash();
 	void DrawAll();
 	void GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed);
+	//bot functions
+	bool isNextBotMoveValid(Bot &currBot);
 	Col_Data collision(sf::RectangleShape &object, float XShift = 0.f, float YShift = 0.f);
 };

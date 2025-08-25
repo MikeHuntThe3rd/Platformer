@@ -59,23 +59,46 @@ void game::LoadMap(std::string level) {
 }
 void game::MoveBot(Bot &currBot) {
 	if (currBot.direction == 0) currBot.direction = RandRange(0, 1) == 0 ? -1 : 1;
-	//FIX STILL
+	bool botCollision = isNextBotMoveValid(currBot);
+ 	if (botCollision) currBot.direction *= -1;
 	currBot.speed.x = 10.f * currBot.direction;
-	float Col_Shift = (currBot.direction == 1) ? currBot.object.getSize().x - currBot.speed.x : -currBot.object.getSize().x - currBot.speed.x;
-	bool WouldFall = !(collision(currBot.object, 0.f, currBot.object.getSize().y / 7.f).collided);
-	if (WouldFall) {
-		currBot.direction *= -1;
-		currBot.speed.x = 10.f * currBot.direction;
-	}
 	Physics(currBot.object, currBot.speed, currBot.falling);
-	if (currBot.speed.x == 0.f) currBot.direction *= -1;
+}
+bool game::isNextBotMoveValid(game::Bot& currBot) {
+	sf::FloatRect nextBotLocationRect = currBot.object.getGlobalBounds(); // get the bots current position and size
+	sf::RectangleShape botFloorObject;
+	nextBotLocationRect.position.x += currBot.speed.x;
+	nextBotLocationRect.position.y += currBot.speed.y;
+	if (currBot.speed.x == 0) {
+		return true;
+	}
+	for (sf::RectangleShape object : Checked_ObjS) {
+		if (object.getPosition().y == currBot.object.getGlobalBounds().position.y + currBot.object.getSize().y) {
+			botFloorObject = object;
+		}
+	}
+	for (sf::RectangleShape currObject : Checked_ObjS) {
+		// stairs
+		if (abs(currObject.getPosition().y - (nextBotLocationRect.position.y + nextBotLocationRect.size.y)) <= nextBotLocationRect.size.y / 8.f) {
+			if ((currBot.direction == 1 && currObject.getPosition().x + currObject.getSize().x > botFloorObject.getPosition().x + botFloorObject.getSize().x) || (currBot.direction == -1 && currObject.getPosition().x < botFloorObject.getPosition().x)) {
+				if (currObject.getPosition().x <= nextBotLocationRect.position.x + nextBotLocationRect.size.x) {
+					return false;
+				}
+			}
+		}
+	}
+	// if there are no stairs, but the bot can move to the current direction
+	if ((currBot.direction == 1 && botFloorObject.getPosition().x + botFloorObject.getSize().x > nextBotLocationRect.position.x + nextBotLocationRect.size.x) || (currBot.direction == -1 && botFloorObject.getPosition().x < nextBotLocationRect.position.x)) {
+		return false;
+	}
+	return true;
 }
 void game::FuncDistrib() {
 	//time
 	Timer = std::chrono::steady_clock::now();
 	//bots
 	for (Bot &currBot : Bots) {
-		GetRelevantTiles(currBot.object, currBot.speed);
+		GetRelevantTiles(currBot.object, currBot.speed); // get all of the objects near the current bots
 		if (!currBot.falling) {
 			MoveBot(currBot);
 		}
@@ -229,7 +252,7 @@ void game::Physics(sf::RectangleShape &object, sf::Vector2f &speed, bool &fallin
 		falling = false;
 	}
 	else if (Y_Col.collided && Y_Col.side.y == -1.f) {
-		object.setPosition({ object.getPosition().x, Y_Col.with.position.y + Y_Col.with.size.y});
+		object.setPosition({ object.getPosition().x, Y_Col.with.position.y + Y_Col.with.size.y });
 		speed.y = 0.f;
 		falling = true;
 	}
