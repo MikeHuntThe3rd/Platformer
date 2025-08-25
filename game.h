@@ -16,6 +16,7 @@ public:
 	sf::RectangleShape temp;
 	sf::Vector2f speed = { 0.f, 0.f };
 	sf::RenderWindow& window;
+	sf::Keyboard::Scancode LatestInput = sf::Keyboard::Scancode::Unknown;
 	game(sf::RenderWindow& win);
 	//structs
 	struct Bot
@@ -41,7 +42,10 @@ public:
 	//variables
 	std::vector<sf::RectangleShape> Game_ObjS;
 	std::vector<sf::RectangleShape> Checked_ObjS;
-	std::vector<CoolDown> CoolDowns = { { "dash", 3000, std::chrono::steady_clock::now() } };
+	std::vector<CoolDown> CoolDowns = { 
+		{ "dash", 2000, std::chrono::steady_clock::now() }, 
+		{ "attack", 500, std::chrono::steady_clock::now() }
+	};
 	std::chrono::steady_clock::time_point Timer;
 	float acceleration = 3.f;
 	float deceleration = 3.f;
@@ -49,15 +53,17 @@ public:
 	//functions
 	int RandRange(int start, int end);
 	bool IntervalPassed(std::string id);
+	void FindLatestInput();
 	void LoadMap(std::string level);
 	void MoveBot(Bot &currBot);
 	void FuncDistrib();
 	void Physics(sf::RectangleShape &object, sf::Vector2f &speed, bool &falling);
-	void movement();
+	void attack();
+	void hit(sf::RectangleShape& hitbox, sf::Vector2f dir);
+	void Action();
 	void WallJump(int dir);
 	void Dash();
 	void DrawAll();
 	void GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed);
 	Col_Data collision(sf::RectangleShape &object, float XShift = 0.f, float YShift = 0.f);
-
 };

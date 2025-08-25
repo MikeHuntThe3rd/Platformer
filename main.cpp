@@ -15,12 +15,9 @@ int main() {
 
 	
 	while (window.isOpen()) {
-		while (std::optional event = window.pollEvent()) {
-			if (event->is<sf::Event::Closed>())window.close();
-			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) {
-				//ti.title_ON = true;
-				window.close();
-			}
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) {
+			//ti.title_ON = true;
+			window.close();
 		}
 		if (std::chrono::steady_clock::now() >= curr + interval) {
 			curr = std::chrono::steady_clock::now();

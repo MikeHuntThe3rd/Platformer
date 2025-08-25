@@ -87,11 +87,83 @@ void game::FuncDistrib() {
 
 	// player
 	GetRelevantTiles(player, speed);
+	FindLatestInput();
 	Physics(player, speed, falling);
-	movement();
+	Action();
 	DrawAll();
 }
-void game::movement() {
+void game::attack() {
+	sf::RectangleShape hitbox;
+	sf::Vector2f dir;
+	hitbox.setFillColor(sf::Color::Transparent);
+	switch (LatestInput) {
+		case sf::Keyboard::Scan::W:
+			hitbox.setPosition({ player.getPosition().x - player.getSize().y / 4.f, player.getPosition().y - player.getSize().x });
+			hitbox.setSize({ player.getSize().y, player.getSize().x});
+			dir.y = -1.f;
+			break;
+		case sf::Keyboard::Scan::A:
+			hitbox.setPosition({ player.getPosition().x, player.getPosition().y});
+			hitbox.setSize({ player.getSize().y, player.getSize().x });
+			hitbox.setRotation(sf::Angle(sf::degrees(90)));
+			dir.x = -1.f;
+			break;
+		case sf::Keyboard::Scan::S:
+			hitbox.setPosition({ player.getPosition().x - player.getSize().y / 4.f, player.getPosition().y + player.getSize().y });
+			hitbox.setSize({ player.getSize().y, player.getSize().x });
+			dir.y = 1.f;
+			break;
+		case sf::Keyboard::Scan::D:
+			hitbox.setPosition({ player.getPosition().x + player.getSize().x * 2.f, player.getPosition().y});
+			hitbox.setSize({ player.getSize().y, player.getSize().x });
+			hitbox.setRotation(sf::Angle(sf::degrees(90)));
+			dir.x = 1.f;
+			break;
+	}
+	temp.setPosition(hitbox.getPosition());
+	temp.setSize(hitbox.getSize());
+	temp.setFillColor(sf::Color::Yellow);
+	temp.setRotation(hitbox.getRotation());
+	hit(hitbox, dir);
+}
+void game::hit(sf::RectangleShape& hitbox, sf::Vector2f dir) {
+	for (Bot &currBot : Bots) {
+		if (hitbox.getGlobalBounds().findIntersection(currBot.object.getGlobalBounds())) {
+			if (dir.x == -1.f || dir.x == 1) {
+				currBot.object.setPosition({currBot.object.getPosition().x, currBot.object.getPosition().y - 10.f});
+				currBot.speed.x = 50.f * dir.x * -1;
+			}
+			else if(dir.y == -1.f)
+			{
+				currBot.object.setPosition({ currBot.object.getPosition().x, currBot.object.getPosition().y - 10.f });
+				currBot.speed.y = -50.f;
+			}
+			else
+			{
+				speed.y = -50.f;
+			}
+		}
+	}
+}
+void game::FindLatestInput() {
+	while (std::optional<sf::Event> event = window.pollEvent()) {
+		if (event->is<sf::Event::Closed>())window.close();
+		if (event->is<sf::Event::KeyPressed>()) {
+			const auto& key = event->getIf<sf::Event::KeyPressed>();
+			if (key->scancode == sf::Keyboard::Scan::W ||
+				key->scancode == sf::Keyboard::Scan::A ||
+				key->scancode == sf::Keyboard::Scan::S ||
+				key->scancode == sf::Keyboard::Scan::D)
+			{
+				LatestInput = key->scancode;
+			}
+		}
+	}
+}
+void game::Action() {
+	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && IntervalPassed("attack")){
+		attack();
+	}
 	if (falling) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
 			speed.x += (speed.x > -40.f) ? -2.f : 0.f;
@@ -120,20 +192,21 @@ void game::movement() {
 			speed.x += (speed.x < 20.f) ? 20.f : 0.f;
 		}
 	}
-	
 }
 void game::Dash() {
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
-		speed.y = -50.f;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-		speed.y = 50.f;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
-		speed.x = -50.f;
-	}
-	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
-		speed.x = 50.f;
+	switch (LatestInput) {
+		case sf::Keyboard::Scan::W:
+			speed.y = -50.f;
+			break;
+		case sf::Keyboard::Scan::A:
+			speed.x = -50.f;
+			break;
+		case sf::Keyboard::Scan::S:
+			speed.y = 50.f;
+			break;
+		case sf::Keyboard::Scan::D:
+			speed.x = 50.f;
+			break;
 	}
 }
 void game::WallJump(int dir) {
@@ -193,9 +266,6 @@ game::Col_Data game::collision(sf::RectangleShape &object, float XShift, float Y
 		object_Hitbox.position.y += YShift;
 		std::optional<sf::FloatRect> intersection = object_Hitbox.findIntersection(bounds);
 		if (intersection.has_value()) {
-			temp.setPosition(intersection.value().position);
-			temp.setSize(intersection.value().size);
-			temp.setFillColor(sf::Color::Green);
 			sf::Vector2f dir({0.f, 0.f});
 			if (intersection.value().position.y > object.getPosition().y + object.getSize().y - intersection.value().size.y) dir.y = 1.f;
 			if (intersection.value().position.y < object.getPosition().y + intersection.value().size.y) dir.y = -1.f ;
@@ -223,7 +293,7 @@ void game::GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed) {
 }
 void game::DrawAll() {
 	window.clear();
-	for (sf::RectangleShape curr: Game_ObjS) {
+	for (sf::RectangleShape& curr: Game_ObjS) {
 		window.draw(curr);
 	}
 	for (Bot currBot : Bots) {
