@@ -49,21 +49,52 @@ void game::LoadMap(std::string level) {
 	}
 }
 void game::MoveBot(Bot &currBot) {
-	if (currBot.direction == 0) { // if there is no initial direction
-		currBot.direction = RandRange(0, 1) == 0 ? -1 : 1; // get a random direction +1 or -1
-		currBot.speed.x = 10.f * currBot.direction; // set the speed
+	if (currBot.direction == 0) currBot.direction = RandRange(0, 1) == 0 ? -1 : 1;
+	bool botCollision = isNextBotMoveValid(currBot);
+ 	if (botCollision) currBot.direction *= -1;
+	currBot.speed.x = 10.f * currBot.direction;
+	Physics(currBot.object, currBot.speed, currBot.falling);
+}
+bool game::isNextBotMoveValid(game::Bot& currBot) {
+	sf::FloatRect nextBotLocationRect = currBot.object.getGlobalBounds(); // get the bots current position and size
+	sf::RectangleShape botFloorObject;
+
+	nextBotLocationRect.position.x += currBot.speed.x;
+	nextBotLocationRect.position.y += currBot.speed.y;
+
+	if (currBot.speed.x == 0) {
+		return true;
 	}
-	bool XCollision = !collision(currBot.object, currBot.object.getSize().x * currBot.direction + currBot.speed.x, currBot.object.getSize().y / 7.f).collided;
-	if (XCollision) {
-		currBot.direction *= -1;
+
+	for (sf::RectangleShape object : Checked_ObjS) {
+		if (object.getPosition().y == currBot.object.getGlobalBounds().position.y + currBot.object.getSize().y) {
+			botFloorObject = object;
+		}
 	}
-	currBot.speed.x = 10.f * currBot.direction; // set the speed
-	Physics(currBot.object, currBot.speed, currBot.falling); // move the bot
+
+	for (sf::RectangleShape currObject : Checked_ObjS) {
+		// stairs
+		if (abs(currObject.getPosition().y - (nextBotLocationRect.position.y + nextBotLocationRect.size.y)) <= nextBotLocationRect.size.y / 8.f) {
+			if ((currBot.direction == 1 && currObject.getPosition().x + currObject.getSize().x > botFloorObject.getPosition().x + botFloorObject.getSize().x) || (currBot.direction == -1 && currObject.getPosition().x < botFloorObject.getPosition().x)) {
+				if (currObject.getPosition().x <= nextBotLocationRect.position.x + nextBotLocationRect.size.x && currObject.getPosition().x + currObject.getSize().x >= nextBotLocationRect.position.x + nextBotLocationRect.size.x) {
+					return false;
+				}
+				else if (currObject.getPosition().x <= nextBotLocationRect.position.x && currObject.getPosition().x + currObject.getSize().x >= nextBotLocationRect.position.x) {
+					return false;
+				}
+			}
+		}
+	}
+	// if there are no stairs, but the bot can move to the current direction
+	if ((currBot.direction == 1 && botFloorObject.getPosition().x + botFloorObject.getSize().x > nextBotLocationRect.position.x + nextBotLocationRect.size.x) || (currBot.direction == -1 && botFloorObject.getPosition().x < nextBotLocationRect.position.x)) {
+		return false;
+	}
+	return true;
 }
 void game::FuncDistrib() {
 	// bots
 	for (Bot &currBot : Bots) {
-		GetRelevantTiles(currBot.object, currBot.speed);
+		GetRelevantTiles(currBot.object, currBot.speed); // get all of the objects near the current bots
 		if (!currBot.falling) {
 			MoveBot(currBot);
 		}
@@ -76,10 +107,8 @@ void game::FuncDistrib() {
 	// player
 	GetRelevantTiles(player, speed);
 	Physics(player, speed, falling);
-
 	movement();
 	DrawAll();
-	Checked_ObjS.clear();
 }
 void game::movement() {
 	if (falling) {
@@ -99,8 +128,9 @@ void game::movement() {
 		}
 	}
 	else {
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !falling) {
+ 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) && !falling) {
 			speed.y = -50.f;
+			player.setPosition({player.getPosition().x, player.getPosition().y + speed.y});
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
 			speed.x += (speed.x > -20.f) ? -20.f : 0.f;
@@ -114,6 +144,15 @@ void game::movement() {
 void game::Dash() {
 	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
 		speed.y = -50.f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
+		speed.y = 50.f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
+		speed.x = -50.f;
+	}
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
+		speed.x = 50.f;
 	}
 }
 void game::WallJump(int dir) {
@@ -136,7 +175,7 @@ void game::Physics(sf::RectangleShape &object, sf::Vector2f &speed, bool &fallin
 		falling = false;
 	}
 	else if (Y_Col.collided && Y_Col.side.y == -1.f) {
-		object.setPosition({ object.getPosition().x, Y_Col.with.position.y + Y_Col.with.size.y});
+		object.setPosition({ object.getPosition().x, Y_Col.with.position.y + Y_Col.with.size.y });
 		speed.y = 0.f;
 		falling = true;
 	}
@@ -178,7 +217,7 @@ game::Col_Data game::collision(sf::RectangleShape &object, float XShift, float Y
 			temp.setFillColor(sf::Color::Green);
 			sf::Vector2f dir({0.f, 0.f});
 			if (intersection.value().position.y > object.getPosition().y + object.getSize().y - intersection.value().size.y) dir.y = 1.f;
-			if (intersection.value().position.y < object.getPosition().y + intersection.value().size.y) dir = { 0.f, -1.f };
+			if (intersection.value().position.y < object.getPosition().y + intersection.value().size.y) dir.y = -1.f ;
 			if (intersection.value().position.x > object.getPosition().x + object.getSize().x - intersection.value().size.x) dir.y = 1.f;;
 			if (intersection.value().position.x < object.getPosition().x + intersection.value().size.x) dir.x = -1.f;;
 			return { true, bounds, dir};
@@ -188,29 +227,19 @@ game::Col_Data game::collision(sf::RectangleShape &object, float XShift, float Y
 }
 void game::GetRelevantTiles(sf::RectangleShape &object, sf::Vector2f speed) {
 	if (Checked_ObjS.size() != 0) {
-		Checked_ObjS = std::vector<sf::RectangleShape>();
+		Checked_ObjS.clear();
 	}
-	sf::FloatRect player_bounds = object.getGlobalBounds();
-	if (speed.x >= 0.f) {
-		player_bounds.size.x += speed.x + 10.f;
-	}
-	else {
-		player_bounds.position.x += speed.x - 10.f;
-		player_bounds.size.x += std::abs(speed.x) + 10.f;
-	}
-	if (speed.y >= 0.f) {
-		player_bounds.size.y += speed.y + 10.f;
-	}
-	else
-	{
-		player_bounds.position.y += speed.y - 10.f;
-		player_bounds.size.y += std::abs(speed.y) + 10.f;
-	}
+	sf::FloatRect bounds = object.getGlobalBounds();
+	float x = -bounds.size.x + std::abs(speed.x) * -1;
+	float y = -bounds.size.y + std::abs(speed.y) * -1;
+	float width = bounds.size.x * 3.f + std::abs(speed.x);
+	float height = bounds.size.y * 3.f + std::abs(speed.y);
+	bounds.position = {bounds.position.x + x, bounds.position.y + y};
+	bounds.size = {width, height};
 	for (sf::RectangleShape curr : Game_ObjS) {
-		if (player_bounds.findIntersection(curr.getGlobalBounds())) Checked_ObjS.push_back(curr);
+		if (bounds.findIntersection(curr.getGlobalBounds())) Checked_ObjS.push_back(curr);
 	}
 }
-
 void game::DrawAll() {
 	window.clear();
 	for (sf::RectangleShape curr: Game_ObjS) {
