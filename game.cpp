@@ -58,28 +58,21 @@ void game::MoveBot(Bot &currBot) {
 bool game::isNextBotMoveValid(game::Bot& currBot) {
 	sf::FloatRect nextBotLocationRect = currBot.object.getGlobalBounds(); // get the bots current position and size
 	sf::RectangleShape botFloorObject;
-
 	nextBotLocationRect.position.x += currBot.speed.x;
 	nextBotLocationRect.position.y += currBot.speed.y;
-
 	if (currBot.speed.x == 0) {
 		return true;
 	}
-
 	for (sf::RectangleShape object : Checked_ObjS) {
 		if (object.getPosition().y == currBot.object.getGlobalBounds().position.y + currBot.object.getSize().y) {
 			botFloorObject = object;
 		}
 	}
-
 	for (sf::RectangleShape currObject : Checked_ObjS) {
 		// stairs
 		if (abs(currObject.getPosition().y - (nextBotLocationRect.position.y + nextBotLocationRect.size.y)) <= nextBotLocationRect.size.y / 8.f) {
 			if ((currBot.direction == 1 && currObject.getPosition().x + currObject.getSize().x > botFloorObject.getPosition().x + botFloorObject.getSize().x) || (currBot.direction == -1 && currObject.getPosition().x < botFloorObject.getPosition().x)) {
-				if (currObject.getPosition().x <= nextBotLocationRect.position.x + nextBotLocationRect.size.x && currObject.getPosition().x + currObject.getSize().x >= nextBotLocationRect.position.x + nextBotLocationRect.size.x) {
-					return false;
-				}
-				else if (currObject.getPosition().x <= nextBotLocationRect.position.x && currObject.getPosition().x + currObject.getSize().x >= nextBotLocationRect.position.x) {
+				if (currObject.getPosition().x <= nextBotLocationRect.position.x + nextBotLocationRect.size.x) {
 					return false;
 				}
 			}
