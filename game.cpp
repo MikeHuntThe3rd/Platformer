@@ -143,10 +143,6 @@ void game::attack() {
 			dir.x = 1.f;
 			break;
 	}
-	temp.setPosition(hitbox.getPosition());
-	temp.setSize(hitbox.getSize());
-	temp.setFillColor(sf::Color::Yellow);
-	temp.setRotation(hitbox.getRotation());
 	hit(hitbox, dir);
 }
 void game::hit(sf::RectangleShape& hitbox, sf::Vector2f dir) {
@@ -186,6 +182,14 @@ void game::FindLatestInput() {
 void game::Action() {
 	if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left) && IntervalPassed("attack")){
 		attack();
+		attack_follow = true;
+	}
+	if (attack_follow && !IntervalPassed("AtFo")) {
+		attack();
+	}
+	else {
+		IntervalPassed("AtFo");
+		attack_follow = false;
 	}
 	if (falling) {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
@@ -195,9 +199,6 @@ void game::Action() {
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
 			speed.x += (speed.x < 40.f)? 2.f: 0.f;
 			WallJump(-1);
-		}
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
-			speed.y += acceleration;
 		}
 		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::LShift) && IntervalPassed("dash")) {
 			Dash();
@@ -323,6 +324,5 @@ void game::DrawAll() {
 		window.draw(currBot.object);
 	}
 	window.draw(player);
-	window.draw(temp);
 	window.display();
 }

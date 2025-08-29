@@ -13,7 +13,6 @@ class game
 public:
 	//sfml
 	sf::RectangleShape player;
-	sf::RectangleShape temp;
 	sf::Vector2f speed = { 0.f, 0.f };
 	sf::RenderWindow& window;
 	sf::Keyboard::Scancode LatestInput = sf::Keyboard::Scancode::Unknown;
@@ -44,12 +43,13 @@ public:
 	std::vector<sf::RectangleShape> Checked_ObjS;
 	std::vector<CoolDown> CoolDowns = { 
 		{ "dash", 2000, std::chrono::steady_clock::now() }, 
-		{ "attack", 500, std::chrono::steady_clock::now() }
+		{ "attack", 500, std::chrono::steady_clock::now() },
+		{ "AtFo", 200, std::chrono::steady_clock::now()  }
 	};
 	std::chrono::steady_clock::time_point Timer;
 	float acceleration = 3.f;
 	float deceleration = 3.f;
-	bool falling = false;
+	bool falling = false, attack_follow = false;
 	//functions
 	int RandRange(int start, int end);
 	bool IntervalPassed(std::string id);
